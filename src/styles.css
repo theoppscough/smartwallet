@@ -1210,3 +1210,126 @@ th.numeric {
     flex-direction: column;
   }
 }
+
+/* Supabase user-created card feature */
+.app-loading-screen {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 1rem;
+  text-align: center;
+  background: #f6f5f2;
+}
+
+.app-loading-screen .auth-brand {
+  justify-content: center;
+  color: #1f1f1f;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.custom-card-panel {
+  margin-bottom: 1.5rem;
+}
+
+.custom-card-form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.custom-rate-section {
+  display: grid;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.custom-rate-section h3 {
+  margin: 0.15rem 0 0.35rem;
+}
+
+.subtle-copy {
+  color: var(--muted-text);
+  margin: 0;
+}
+
+.reward-rate-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.rate-input-wrap {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.rate-input-wrap > span {
+  font-weight: 700;
+  color: var(--muted-text);
+}
+
+.wallet-section {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.section-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1.5rem;
+}
+
+.section-heading-row h2,
+.section-heading-row p {
+  margin: 0;
+}
+
+.section-heading-row > p {
+  max-width: 34rem;
+  color: var(--muted-text);
+  text-align: right;
+}
+
+.custom-card-tile {
+  border-style: dashed;
+}
+
+.custom-card-tile > div > p {
+  color: var(--muted-text);
+}
+
+.danger-button {
+  color: #8a2f2f;
+}
+
+.page-message {
+  margin: 0 0 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .reward-rate-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .section-heading-row {
+    display: grid;
+    align-items: start;
+  }
+
+  .section-heading-row > p {
+    text-align: left;
+  }
+}
+
+@media (max-width: 560px) {
+  .reward-rate-grid {
+    grid-template-columns: 1fr;
+  }
+}
