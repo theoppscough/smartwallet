@@ -38,7 +38,7 @@ export default function ExpensesPage() {
     [filter, userExpenses],
   )
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
     setMessage('')
 
@@ -52,14 +52,16 @@ export default function ExpensesPage() {
       return
     }
 
-    if (editingId) {
-      updateExpense(editingId, form)
-      setMessage('Expense updated successfully.')
-    } else {
-      addExpense(form)
-      setMessage('Expense added successfully.')
+    const result = editingId
+      ? await updateExpense(editingId, form)
+      : await addExpense(form)
+
+    if (!result?.ok) {
+      setMessage(result?.message || 'Unable to save the expense.')
+      return
     }
 
+    setMessage(editingId ? 'Expense updated successfully.' : 'Expense added successfully.')
     setEditingId(null)
     setForm({ ...emptyForm, cardId: ownedCards[0]?.id || '' })
   }
@@ -84,9 +86,12 @@ export default function ExpensesPage() {
     setMessage('')
   }
 
-  function handleDelete(expenseId) {
+  async function handleDelete(expenseId) {
     if (window.confirm('Delete this expense? This action cannot be undone.')) {
-      deleteExpense(expenseId)
+      const result = await deleteExpense(expenseId)
+      if (!result?.ok) {
+        setMessage(result?.message || 'Unable to delete the expense.')
+      }
     }
   }
 
