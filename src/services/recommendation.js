@@ -103,3 +103,38 @@ export function rankNewCards({ cards, rewardRules, ownedCardIds, expenses }) {
             category,
             annualSpend: Number(annualSpend),
             rate,
+            estimatedReward,
+          }
+        })
+        .sort((a, b) => b.estimatedReward - a.estimatedReward)
+
+      const estimatedAnnualReward = categoryBreakdown.reduce(
+        (sum, item) => sum + item.estimatedReward,
+        0,
+      )
+      const netAnnualBenefit = estimatedAnnualReward - Number(card.annualFee || 0)
+      const effectiveRewardRate = spendingSummary.projectedAnnualSpend
+        ? (estimatedAnnualReward / spendingSummary.projectedAnnualSpend) * 100
+        : 0
+
+      return {
+        ...card,
+        categoryBreakdown,
+        estimatedAnnualReward,
+        netAnnualBenefit,
+        effectiveRewardRate,
+        topCategory: categoryBreakdown[0] || null,
+      }
+    })
+    .sort((a, b) => {
+      if (b.netAnnualBenefit !== a.netAnnualBenefit) {
+        return b.netAnnualBenefit - a.netAnnualBenefit
+      }
+      if (b.estimatedAnnualReward !== a.estimatedAnnualReward) {
+        return b.estimatedAnnualReward - a.estimatedAnnualReward
+      }
+      return a.annualFee - b.annualFee
+    })
+
+  return { spendingSummary, recommendations }
+}
