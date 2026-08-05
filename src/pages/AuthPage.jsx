@@ -73,6 +73,23 @@ export default function AuthPage() {
     redirectByRole(result.user)
   }
 
+  async function demoLogin(role) {
+    const credentials =
+      role === 'admin'
+        ? { email: 'admin@smartwallet.demo', password: 'admin123' }
+        : { email: 'user@smartwallet.demo', password: 'demo123' }
+
+    setSubmitting(true)
+    const result = await login(credentials.email, credentials.password)
+    setSubmitting(false)
+    if (result.ok) {
+      redirectByRole(result.user)
+    } else {
+      setMessageType('error')
+      setMessage(result.message)
+    }
+  }
+
   async function handleReset() {
     const result = await resetDemo()
     setMessageType(result.ok ? 'success' : 'error')
@@ -174,4 +191,79 @@ export default function AuthPage() {
                 <input
                   required
                   value={registerForm.fullName}
+                  onChange={(event) =>
+                    setRegisterForm({ ...registerForm, fullName: event.target.value })
+                  }
+                  placeholder="Your name"
+                />
+              </label>
+              <label>
+                Email
+                <input
+                  type="email"
+                  required
+                  value={registerForm.email}
+                  onChange={(event) =>
+                    setRegisterForm({ ...registerForm, email: event.target.value })
+                  }
+                  placeholder="you@example.com"
+                />
+              </label>
+              <div className="form-grid two">
+                <label>
+                  Password
+                  <input
+                    type="password"
+                    required
+                    value={registerForm.password}
+                    onChange={(event) =>
+                      setRegisterForm({ ...registerForm, password: event.target.value })
+                    }
+                    placeholder="6+ characters"
+                  />
+                </label>
+                <label>
+                  Monthly budget
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    required
+                    value={registerForm.monthlyBudget}
+                    onChange={(event) =>
+                      setRegisterForm({
+                        ...registerForm,
+                        monthlyBudget: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              {message && (
+                <p className={messageType === 'success' ? 'form-success' : 'form-error'}>
+                  {message}
+                </p>
+              )}
+              <button className="primary-button full-width" type="submit" disabled={submitting}>
+                {submitting ? 'Creating account…' : 'Create account'}
+              </button>
+            </form>
+          )}
+
+          <div className="demo-divider"><span>Demo access</span></div>
+          <div className="demo-actions">
+            <button className="secondary-button" disabled={submitting} onClick={() => demoLogin('user')}>
+              Open user demo
+            </button>
+            <button className="secondary-button" disabled={submitting} onClick={() => demoLogin('admin')}>
+              Open admin demo
+            </button>
+          </div>
+          <button className="reset-button" onClick={handleReset}>
+            Refresh database connection
+          </button>
+        </div>
+      </section>
+    </div>
+  )
 }
