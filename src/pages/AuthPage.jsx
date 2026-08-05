@@ -11,12 +11,14 @@ const emptyRegister = {
 }
 
 export default function AuthPage() {
-  const { currentUser, login, register, resetDemo } = useApp()
+  const { currentUser, login, register, resetDemo, lastError } = useApp()
   const navigate = useNavigate()
   const [mode, setMode] = useState('login')
   const [loginForm, setLoginForm] = useState(emptyLogin)
   const [registerForm, setRegisterForm] = useState(emptyRegister)
-  const [error, setError] = useState('')
+  const [message, setMessage] = useState(lastError || '')
+  const [messageType, setMessageType] = useState(lastError ? 'error' : '')
+  const [submitting, setSubmitting] = useState(false)
 
   if (currentUser) {
     return <Navigate to={currentUser.role === 'admin' ? '/admin' : '/dashboard'} replace />
@@ -26,45 +28,55 @@ export default function AuthPage() {
     navigate(user.role === 'admin' ? '/admin' : '/dashboard')
   }
 
-  function handleLogin(event) {
+  async function handleLogin(event) {
     event.preventDefault()
-    setError('')
-    const result = login(loginForm.email, loginForm.password)
+    setMessage('')
+    setSubmitting(true)
+    const result = await login(loginForm.email, loginForm.password)
+    setSubmitting(false)
+
     if (!result.ok) {
-      setError(result.message)
+      setMessageType('error')
+      setMessage(result.message)
       return
     }
     redirectByRole(result.user)
   }
 
-  function handleRegister(event) {
+  async function handleRegister(event) {
     event.preventDefault()
-    setError('')
+    setMessage('')
     if (registerForm.password.length < 6) {
-      setError('Password must contain at least 6 characters.')
+      setMessageType('error')
+      setMessage('Password must contain at least 6 characters.')
       return
     }
-    const result = register(registerForm)
+
+    setSubmitting(true)
+    const result = await register(registerForm)
+    setSubmitting(false)
+
     if (!result.ok) {
-      setError(result.message)
+      setMessageType('error')
+      setMessage(result.message)
       return
     }
+
+    if (result.requiresEmailConfirmation) {
+      setMessageType('success')
+      setMessage(result.message)
+      setMode('login')
+      setLoginForm({ email: registerForm.email, password: '' })
+      return
+    }
+
     redirectByRole(result.user)
   }
 
-  function demoLogin(role) {
-    const credentials =
-      role === 'admin'
-        ? { email: 'admin@smartwallet.demo', password: 'admin123' }
-        : { email: 'user@smartwallet.demo', password: 'demo123' }
-
-    const result = login(credentials.email, credentials.password)
-    if (result.ok) redirectByRole(result.user)
-  }
-
-  function handleReset() {
-    resetDemo()
-    setError('Demo data was reset. Choose a demo account to continue.')
+  async function handleReset() {
+    const result = await resetDemo()
+    setMessageType(result.ok ? 'success' : 'error')
+    setMessage(result.message)
   }
 
   return (
@@ -84,8 +96,8 @@ export default function AuthPage() {
         </div>
         <div className="hero-preview">
           <span>Recommended today</span>
-          <strong>Amex Gold</strong>
-          <small>4% back on dining</small>
+          <strong>Your best card</strong>
+          <small>Based on your wallet and reward rules</small>
         </div>
       </section>
 
@@ -96,7 +108,7 @@ export default function AuthPage() {
               className={mode === 'login' ? 'active' : ''}
               onClick={() => {
                 setMode('login')
-                setError('')
+                setMessage('')
               }}
             >
               Sign in
@@ -105,7 +117,7 @@ export default function AuthPage() {
               className={mode === 'register' ? 'active' : ''}
               onClick={() => {
                 setMode('register')
-                setError('')
+                setMessage('')
               }}
             >
               Create account
@@ -142,9 +154,13 @@ export default function AuthPage() {
                   placeholder="Enter password"
                 />
               </label>
-              {error && <p className="form-error">{error}</p>}
-              <button className="primary-button full-width" type="submit">
-                Sign in
+              {message && (
+                <p className={messageType === 'success' ? 'form-success' : 'form-error'}>
+                  {message}
+                </p>
+              )}
+              <button className="primary-button full-width" type="submit" disabled={submitting}>
+                {submitting ? 'Signing in…' : 'Sign in'}
               </button>
             </form>
           ) : (
@@ -158,75 +174,4 @@ export default function AuthPage() {
                 <input
                   required
                   value={registerForm.fullName}
-                  onChange={(event) =>
-                    setRegisterForm({ ...registerForm, fullName: event.target.value })
-                  }
-                  placeholder="Your name"
-                />
-              </label>
-              <label>
-                Email
-                <input
-                  type="email"
-                  required
-                  value={registerForm.email}
-                  onChange={(event) =>
-                    setRegisterForm({ ...registerForm, email: event.target.value })
-                  }
-                  placeholder="you@example.com"
-                />
-              </label>
-              <div className="form-grid two">
-                <label>
-                  Password
-                  <input
-                    type="password"
-                    required
-                    value={registerForm.password}
-                    onChange={(event) =>
-                      setRegisterForm({ ...registerForm, password: event.target.value })
-                    }
-                    placeholder="6+ characters"
-                  />
-                </label>
-                <label>
-                  Monthly budget
-                  <input
-                    type="number"
-                    min="0"
-                    step="50"
-                    required
-                    value={registerForm.monthlyBudget}
-                    onChange={(event) =>
-                      setRegisterForm({
-                        ...registerForm,
-                        monthlyBudget: event.target.value,
-                      })
-                    }
-                  />
-                </label>
-              </div>
-              {error && <p className="form-error">{error}</p>}
-              <button className="primary-button full-width" type="submit">
-                Create account
-              </button>
-            </form>
-          )}
-
-          <div className="demo-divider"><span>Demo access</span></div>
-          <div className="demo-actions">
-            <button className="secondary-button" onClick={() => demoLogin('user')}>
-              Open user demo
-            </button>
-            <button className="secondary-button" onClick={() => demoLogin('admin')}>
-              Open admin demo
-            </button>
-          </div>
-          <button className="reset-button" onClick={handleReset}>
-            Reset all demo data
-          </button>
-        </div>
-      </section>
-    </div>
-  )
 }
