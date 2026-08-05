@@ -10,8 +10,8 @@ export default function DashboardPage() {
   const {
     currentUser,
     userExpenses,
-    cards,
-    rewardRules,
+    ownedCards,
+    allRewardRules,
   } = useApp()
 
   const monthKey = currentMonthKey()
@@ -37,7 +37,7 @@ export default function DashboardPage() {
   const maxCategoryTotal = Math.max(...categoryTotals.map((item) => item.total), 1)
 
   const totalRewards = monthExpenses.reduce((sum, expense) => {
-    const rate = getRuleRate(rewardRules, expense.cardId, expense.category)
+    const rate = getRuleRate(allRewardRules, expense.cardId, expense.category)
     return sum + (Number(expense.amount) * rate) / 100
   }, 0)
 
@@ -54,98 +54,3 @@ export default function DashboardPage() {
             + Add expense
           </Link>
         }
-      />
-
-      <section className="stats-grid">
-        <StatCard
-          label="Spent this month"
-          value={formatCurrency(totalSpent)}
-          detail={`${budgetPercent.toFixed(0)}% of monthly budget`}
-        />
-        <StatCard
-          label="Budget remaining"
-          value={formatCurrency(remaining)}
-          detail={`Budget: ${formatCurrency(currentUser.monthlyBudget)}`}
-          tone={remaining === 0 ? 'warning' : 'success'}
-        />
-        <StatCard
-          label="Estimated rewards"
-          value={formatCurrency(totalRewards)}
-          detail="Based on stored reward rules"
-          tone="accent"
-        />
-        <StatCard
-          label="Top category"
-          value={topCategory?.category || 'No spending'}
-          detail={topCategory ? formatCurrency(topCategory.total) : 'Add an expense to begin'}
-        />
-      </section>
-
-      <section className="dashboard-grid">
-        <article className="panel">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow">Budget progress</p>
-              <h2>Monthly overview</h2>
-            </div>
-            <strong>{budgetPercent.toFixed(0)}%</strong>
-          </div>
-          <div className="progress-track" aria-label={`${budgetPercent}% of budget used`}>
-            <span style={{ width: `${budgetPercent}%` }} />
-          </div>
-          <div className="budget-labels">
-            <span>{formatCurrency(totalSpent)} spent</span>
-            <span>{formatCurrency(currentUser.monthlyBudget)} budget</span>
-          </div>
-
-          <div className="category-chart">
-            {categoryTotals.length === 0 ? (
-              <p className="empty-state">No expenses recorded this month.</p>
-            ) : (
-              categoryTotals.map((item) => (
-                <div className="bar-row" key={item.category}>
-                  <span>{item.category}</span>
-                  <div className="bar-track">
-                    <span style={{ width: `${(item.total / maxCategoryTotal) * 100}%` }} />
-                  </div>
-                  <strong>{formatCurrency(item.total)}</strong>
-                </div>
-              ))
-            )}
-          </div>
-        </article>
-
-        <article className="panel">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow">Latest activity</p>
-              <h2>Recent expenses</h2>
-            </div>
-            <Link to="/expenses">View all</Link>
-          </div>
-
-          <div className="transaction-list">
-            {userExpenses.slice(0, 5).map((expense) => {
-              const card = cards.find((item) => item.id === expense.cardId)
-              return (
-                <div className="transaction-item" key={expense.id}>
-                  <span className="transaction-icon">
-                    {expense.merchant.charAt(0).toUpperCase()}
-                  </span>
-                  <span className="transaction-info">
-                    <strong>{expense.merchant}</strong>
-                    <small>
-                      {expense.category} · {card?.name || 'No card'} ·{' '}
-                      {formatDate(expense.expenseDate)}
-                    </small>
-                  </span>
-                  <strong>{formatCurrency(expense.amount)}</strong>
-                </div>
-              )
-            })}
-          </div>
-        </article>
-      </section>
-    </>
-  )
-}
